@@ -27,29 +27,24 @@ def load_generate():
 
 
 def main():
+    try:
+        api_key = st.secrets["GROQ_API_KEY"]
+    except (KeyError, FileNotFoundError):
+        st.error("Add `GROQ_API_KEY` to `.streamlit/secrets.toml` or your Streamlit Cloud app secrets.")
+        st.stop()
+
+    os.environ["GROQ_API_KEY"] = api_key
+
     st.title("RAG Assistant")
     st.caption("Ask questions about RAG, embeddings, ChromaDB, and vector search.")
 
     with st.sidebar:
         st.header("Settings")
-        api_key = st.text_input(
-            "Groq API Key",
-            type="password",
-            value=os.environ.get("GROQ_API_KEY", ""),
-            help="Or set GROQ_API_KEY in your environment / Streamlit secrets.",
-        )
-        if api_key:
-            os.environ["GROQ_API_KEY"] = api_key
-
         top_k = st.slider("Chunks to retrieve", min_value=1, max_value=6, value=3)
 
         st.divider()
         st.markdown("**Run locally:**")
         st.code("streamlit run app.py", language="bash")
-
-    if not os.environ.get("GROQ_API_KEY"):
-        st.warning("Add your Groq API key in the sidebar, or set `GROQ_API_KEY` in the environment.")
-        st.stop()
 
     if not CHROMA_PATH.exists():
         st.error("Knowledge base not found. Run `python indexer.py` first to build `./chroma_db`.")
